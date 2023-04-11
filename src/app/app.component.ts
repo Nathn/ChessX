@@ -19,6 +19,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
   private currentPos: string = "";
   private selectedPiecePosition: { row: number, col: number } = { row: -1, col: -1 };
+  private color: string = "white";
 
   private START_POSITION = "rnbqkbnr/pppppppp/......../......../......../......../PPPPPPPP/RNBQKBNR"
 
@@ -129,6 +130,14 @@ export class AppComponent implements OnInit, OnDestroy {
     const rows = this.currentPos.split("/");
     // get the piece being moved
     const piece = rows[startRow][startCol];
+
+    // check if the piece being moved is the same color as the player
+    if ((piece.toLowerCase() === piece && this.color === "white") || (piece.toUpperCase() === piece && this.color === "black")) {
+      return this.currentPos;
+    } else {
+      this.color = this.color === "white" ? "black" : "white";
+    }
+
     // remove the piece from the starting position
     rows[startRow] = rows[startRow].substr(0, startCol) + "." + rows[startRow].substr(startCol + 1);
     // place the piece in the ending position
