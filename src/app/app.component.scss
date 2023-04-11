@@ -1,0 +1,8 @@
+canvas {
+    border: 3px solid rgb(52, 80, 106);
+    /* center the canvas horizontally & vertically */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
