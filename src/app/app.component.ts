@@ -131,6 +131,10 @@ export class AppComponent implements OnInit, OnDestroy {
     // get the piece being moved
     const piece = rows[startRow][startCol];
 
+    if (!this.moveIsValid(piece, startRow, startCol, endRow, endCol)) {
+      return this.currentPos;
+    }
+
     // check if the piece being moved is the same color as the player
     if ((piece.toLowerCase() === piece && this.color === "white") || (piece.toUpperCase() === piece && this.color === "black")) {
       return this.currentPos;
@@ -146,6 +150,29 @@ export class AppComponent implements OnInit, OnDestroy {
     return rows.join("/");
   }
 
+  moveIsValid(piece: string, startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+    let movingDirection: number = piece.toLowerCase() === piece ? 1 : -1;
+    // check if the piece is a pawn
+    if (piece.toLowerCase() === "p") {
+      // check if the pawn is moving forward
+      if (((startRow < endRow && movingDirection === 1) || (startRow > endRow && movingDirection === -1)) && this.currentPos.split("/")[endRow][endCol] == ".") {
+        // check if the pawn is moving forward one space
+        if (startRow + 1 * movingDirection === endRow && startCol === endCol) {
+          return true;
+        }
+        // check if the pawn is moving forward two spaces
+        if ((startRow + 2 * movingDirection === endRow && startCol === endCol && ((movingDirection === 1 && startRow === 1) || (movingDirection === -1 && startRow === 6))) && this.currentPos.split("/")[endRow][endCol] == "." && this.currentPos.split("/")[endRow - movingDirection][endCol] == ".") {
+          return true;
+        }
+      }
+      // check if the pawn is moving diagonally, and if there is a piece to capture
+      if (((startRow + 1 * movingDirection === endRow && startCol + 1 === endCol) || (startRow + 1 * movingDirection === endRow && startCol - 1 === endCol)) && this.currentPos.split("/")[endRow][endCol] != ".") {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
 
   public ngOnDestroy(): void {
   }
