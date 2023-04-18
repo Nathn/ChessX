@@ -102,6 +102,26 @@ export class AppComponent implements OnInit, OnDestroy {
           }
           const img = this.pieces[file];
           if (img) this.ctx.drawImage(img, col * 100, i * 100, 100, 100);
+          // if the piece is selected, draw a red square around it
+          if (this.selectedPiecePosition.row === i && this.selectedPiecePosition.col === col) {
+            this.ctx.strokeStyle = 'rgb(250, 50, 50, 0.7)';
+            this.ctx.lineWidth = 5;
+            this.ctx.strokeRect(col * 100, i * 100, 100, 100);
+          }
+          // for the position, check with the moveIsValid function to see if the piece can move there
+          // if so, draw a red dot on the square
+          if (this.selectedPiecePosition.row !== -1 &&
+              this.selectedPiecePosition.col !== -1 &&
+              (this.selectedPiecePosition.row !== i ||
+              this.selectedPiecePosition.col !== col)) {
+            if (this.moveIsValid(this.selectedPiecePosition.row, this.selectedPiecePosition.col, i, col)) {
+              this.ctx.fillStyle = 'rgb(250, 50, 50, 0.7)';
+              this.ctx.beginPath();
+              this.ctx.arc(col * 100 + 50, i * 100 + 50, 10, 0, 2 * Math.PI);
+              this.ctx.fill();
+            }
+          }
+
           col++;
         } else {
           col += parseInt(c); // move the column index by the number of empty squares
@@ -117,6 +137,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.selectedPiecePosition.row === -1) {
       this.selectedPiecePosition.row = row;
       this.selectedPiecePosition.col = col;
+      this.loadPosition(this.currentPos);
     } else {
       const move = this.getNewPos(this.selectedPiecePosition.row, this.selectedPiecePosition.col, row, col);
       this.selectedPiecePosition.row = -1;
@@ -130,27 +151,29 @@ export class AppComponent implements OnInit, OnDestroy {
     const rows = this.currentPos.split("/");
     // get the piece being moved
     const piece = rows[startRow][startCol];
-
-    if (!this.moveIsValid(piece, startRow, startCol, endRow, endCol)) {
+    // check if the move is valid
+    if (!this.moveIsValid(startRow, startCol, endRow, endCol)) {
       return this.currentPos;
     }
-
-    // check if the piece being moved is the same color as the player
-    if ((piece.toLowerCase() === piece && this.color === "white") || (piece.toUpperCase() === piece && this.color === "black")) {
-      return this.currentPos;
-    } else {
-      this.color = this.color === "white" ? "black" : "white";
-    }
-
     // remove the piece from the starting position
     rows[startRow] = rows[startRow].substr(0, startCol) + "." + rows[startRow].substr(startCol + 1);
     // place the piece in the ending position
     rows[endRow] = rows[endRow].substr(0, endCol) + piece + rows[endRow].substr(endCol + 1);
+    // switch the player's color
+    this.color = this.color === "white" ? "black" : "white";
     // join the rows back into a single string and return the new position
     return rows.join("/");
   }
 
-  moveIsValid(piece: string, startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+  moveIsValid(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+    // convert the current position to an array of rows
+    const rows = this.currentPos.split("/");
+    // get the piece being moved
+    const piece = rows[startRow][startCol];
+    // check if the piece being moved is the same color as the player
+    if ((piece.toLowerCase() === piece && this.color === "white") || (piece.toUpperCase() === piece && this.color === "black")) {
+      return false;
+    }
     let movingDirection: number = piece.toLowerCase() === piece ? 1 : -1;
     // check if the piece is a pawn
     if (piece.toLowerCase() === "p") {
