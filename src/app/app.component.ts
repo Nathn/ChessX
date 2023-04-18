@@ -40,6 +40,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.canvas.width = 800;
     this.canvas.height = 800;
+    this.color = "white";
     this.renderer.appendChild(this.el.nativeElement, this.canvas);
     this.loadPosition(this.START_POSITION);
     this.canvas.addEventListener('click', (event) =>
@@ -103,7 +104,7 @@ export class AppComponent implements OnInit, OnDestroy {
           const img = this.pieces[file];
           if (img) this.ctx.drawImage(img, col * 100, i * 100, 100, 100);
           // if the piece is selected, draw a red square around it
-          if (this.selectedPiecePosition.row === i && this.selectedPiecePosition.col === col) {
+          if (this.selectedPiecePosition.row === i && this.selectedPiecePosition.col === col  && img) {
             this.ctx.strokeStyle = 'rgb(250, 50, 50, 0.7)';
             this.ctx.lineWidth = 5;
             this.ctx.strokeRect(col * 100, i * 100, 100, 100);
@@ -140,8 +141,13 @@ export class AppComponent implements OnInit, OnDestroy {
       this.loadPosition(this.currentPos);
     } else {
       const move = this.getNewPos(this.selectedPiecePosition.row, this.selectedPiecePosition.col, row, col);
-      this.selectedPiecePosition.row = -1;
-      this.selectedPiecePosition.col = -1;
+      if (move === this.currentPos) {
+        this.selectedPiecePosition.row = row;
+        this.selectedPiecePosition.col = col;
+      } else {
+        this.selectedPiecePosition.row = -1;
+        this.selectedPiecePosition.col = -1;
+      }
       this.loadPosition(move);
     }
   }
@@ -168,15 +174,16 @@ export class AppComponent implements OnInit, OnDestroy {
   moveIsValid(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
     // convert the current position to an array of rows
     const rows = this.currentPos.split("/");
-    // get the piece being moved
-    const piece = rows[startRow][startCol];
+    // get the piece being moved and the piece at the ending position
+    const startPiece = rows[startRow][startCol];
+    const endPiece = rows[endRow][endCol];
     // check if the piece being moved is the same color as the player
-    if ((piece.toLowerCase() === piece && this.color === "white") || (piece.toUpperCase() === piece && this.color === "black")) {
+    if ((startPiece.toLowerCase() === startPiece && this.color === "white") || (startPiece.toUpperCase() === startPiece && this.color === "black")) {
       return false;
     }
-    let movingDirection: number = piece.toLowerCase() === piece ? 1 : -1;
+    let movingDirection: number = startPiece.toLowerCase() === startPiece ? 1 : -1;
     // check if the piece is a pawn
-    if (piece.toLowerCase() === "p") {
+    if (startPiece.toLowerCase() === "p") {
       // check if the pawn is moving forward
       if (((startRow < endRow && movingDirection === 1) || (startRow > endRow && movingDirection === -1)) && this.currentPos.split("/")[endRow][endCol] == ".") {
         // check if the pawn is moving forward one space
@@ -190,7 +197,43 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       // check if the pawn is moving diagonally, and if there is a piece to capture
       if (((startRow + 1 * movingDirection === endRow && startCol + 1 === endCol) || (startRow + 1 * movingDirection === endRow && startCol - 1 === endCol)) && this.currentPos.split("/")[endRow][endCol] != ".") {
-        return true;
+        if (((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    // check if the piece is a knight
+    if (startPiece.toLowerCase() === "n") {
+      if ((startRow + 2 === endRow && startCol + 1 === endCol) ||
+          (startRow + 2 === endRow && startCol - 1 === endCol) ||
+          (startRow - 2 === endRow && startCol + 1 === endCol) ||
+          (startRow - 2 === endRow && startCol - 1 === endCol) ||
+          (startRow + 1 === endRow && startCol + 2 === endCol) ||
+          (startRow + 1 === endRow && startCol - 2 === endCol) ||
+          (startRow - 1 === endRow && startCol + 2 === endCol) ||
+          (startRow - 1 === endRow && startCol - 2 === endCol)) {
+        if (endPiece === "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    // check if the piece is a bishop
+    if (startPiece.toLowerCase() === "b") {
+      if (Math.abs(startRow - endRow) === Math.abs(startCol - endCol)) {
+        let row = startRow;
+        let col = startCol;
+        while (row !== endRow && col !== endCol) {
+          row += startRow < endRow ? 1 : -1;
+          col += startCol < endCol ? 1 : -1;
+          if (row !== endRow && col !== endCol && this.currentPos.split("/")[row][col] !== ".") {
+            return false;
+          }
+        }
+        if (endPiece === "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+          return true;
+        }
       }
       return false;
     }
