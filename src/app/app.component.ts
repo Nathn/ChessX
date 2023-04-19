@@ -14,6 +14,9 @@ import {
 
 export class AppComponent implements OnInit, OnDestroy {
   public title = 'ChessX';
+  public blackTileColor = 'rgb(52, 80, 106)';
+  public whiteTileColor = 'rgb(162, 161, 146)';
+  public UIColor = 'rgba(125, 87, 75, 0.75)';
 
   private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
   private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -58,9 +61,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private loadPosition(fen: string): void {
-    this.ctx.fillStyle = 'rgb(52, 80, 106)';
+    this.ctx.fillStyle = this.blackTileColor;
     this.ctx.fillRect(0, 0, 800, 800);
-    this.ctx.fillStyle = 'rgb(162, 161, 146)';
+    this.ctx.fillStyle = this.whiteTileColor;
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         if ((i + j) % 2 === 0) {
@@ -105,7 +108,7 @@ export class AppComponent implements OnInit, OnDestroy {
           if (img) this.ctx.drawImage(img, col * 100, i * 100, 100, 100);
           // if the piece is selected, draw a red square around it
           if (this.selectedPiecePosition.row === i && this.selectedPiecePosition.col === col  && img) {
-            this.ctx.strokeStyle = 'rgb(250, 50, 50, 0.7)';
+            this.ctx.strokeStyle = this.UIColor;
             this.ctx.lineWidth = 5;
             this.ctx.strokeRect(col * 100, i * 100, 100, 100);
           }
@@ -116,7 +119,7 @@ export class AppComponent implements OnInit, OnDestroy {
               (this.selectedPiecePosition.row !== i ||
               this.selectedPiecePosition.col !== col)) {
             if (this.moveIsValid(this.selectedPiecePosition.row, this.selectedPiecePosition.col, i, col)) {
-              this.ctx.fillStyle = 'rgb(250, 50, 50, 0.7)';
+              this.ctx.fillStyle = this.UIColor;
               this.ctx.beginPath();
               this.ctx.arc(col * 100 + 50, i * 100 + 50, 10, 0, 2 * Math.PI);
               this.ctx.fill();
@@ -181,6 +184,10 @@ export class AppComponent implements OnInit, OnDestroy {
     if ((startPiece.toLowerCase() === startPiece && this.color === "white") || (startPiece.toUpperCase() === startPiece && this.color === "black")) {
       return false;
     }
+    // check if the piece is moving to the same square
+    if (startRow === endRow && startCol === endCol) {
+      return false;
+    }
     let movingDirection: number = startPiece.toLowerCase() === startPiece ? 1 : -1;
     // check if the piece is a pawn
     if (startPiece.toLowerCase() === "p") {
@@ -231,6 +238,69 @@ export class AppComponent implements OnInit, OnDestroy {
             return false;
           }
         }
+        if (endPiece === "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    // check if the piece is a rook
+    if (startPiece.toLowerCase() === "r") {
+      if (startRow === endRow || startCol === endCol) {
+        let row = startRow;
+        let col = startCol;
+        while (row !== endRow || col !== endCol) {
+          if (startRow === endRow) {
+            col += startCol < endCol ? 1 : -1;
+          } else {
+            row += startRow < endRow ? 1 : -1;
+          }
+          if ((row !== endRow || col !== endCol) && this.currentPos.split("/")[row][col] !== ".") {
+            return false;
+          }
+        }
+        if (endPiece === "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    // check if the piece is a queen
+    if (startPiece.toLowerCase() === "q") {
+      if (Math.abs(startRow - endRow) === Math.abs(startCol - endCol) || startRow === endRow || startCol === endCol) {
+        let row = startRow;
+        let col = startCol;
+        while (row !== endRow || col !== endCol) {
+          if (startRow === endRow || startCol === endCol) {
+            if (startRow === endRow) {
+              col += startCol < endCol ? 1 : -1;
+            } else {
+              row += startRow < endRow ? 1 : -1;
+            }
+          } else {
+            row += startRow < endRow ? 1 : -1;
+            col += startCol < endCol ? 1 : -1;
+          }
+          if ((row !== endRow || col !== endCol) && this.currentPos.split("/")[row][col] !== ".") {
+            return false;
+          }
+        }
+        if (endPiece === "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    // check if the piece is a king
+    if (startPiece.toLowerCase() === "k") {
+      if ((startRow + 1 === endRow && startCol === endCol) ||
+          (startRow - 1 === endRow && startCol === endCol) ||
+          (startRow === endRow && startCol + 1 === endCol) ||
+          (startRow === endRow && startCol - 1 === endCol) ||
+          (startRow + 1 === endRow && startCol + 1 === endCol) ||
+          (startRow + 1 === endRow && startCol - 1 === endCol) ||
+          (startRow - 1 === endRow && startCol + 1 === endCol) ||
+          (startRow - 1 === endRow && startCol - 1 === endCol)) {
         if (endPiece === "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
           return true;
         }
