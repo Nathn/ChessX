@@ -4,7 +4,16 @@ import {
   Renderer2,
   ElementRef,
   OnDestroy,
+  Input
 } from '@angular/core';
+import {
+  HttpClient,
+  HttpHeaders,
+  HttpErrorResponse
+} from '@angular/common/http';
+import {
+  environment
+} from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -13,22 +22,55 @@ import {
 })
 
 export class AppComponent implements OnInit, OnDestroy {
+  @Input() loggedIn: boolean = parseInt(localStorage.getItem('loggedIn') || '0') === 1;
+
   public title = 'ChessX';
   public blackTileColor = 'rgb(52, 80, 106)';
   public whiteTileColor = 'rgb(162, 161, 146)';
   public UIColor = 'rgba(125, 87, 75, 0.75)';
+
+  public password: string = "";
 
   private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
   private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
   private currentPos: string = "";
   private selectedPiecePosition: { row: number, col: number } = { row: -1, col: -1 };
   private color: string = "white";
+  private refreshSetTimeout: any;
 
   private START_POSITION = "rnbqkbnr/pppppppp/......../......../......../......../PPPPPPPP/RNBQKBNR"
 
   private pieces: { [key: string]: HTMLImageElement } = {};
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {
+  public login(): void {
+    if (this.password === environment.password) {
+      console.log("Logged in successfully!");
+      this.loggedIn = true;
+      localStorage.setItem('loggedIn', '1');
+      clearInterval(this.refreshSetTimeout);
+    }
+  }
+
+  public logout(): void {
+    this.loggedIn = false;
+    localStorage.setItem('loggedIn', '0');
+  }
+
+  public refresh(): void {
+    this.httpService.get("/game").subscribe((data: any) => {
+      if (data) {
+        this.loadPosition(data.fen);
+        this.color = data.color;
+      }
+    });
+  }
+
+
+  constructor(
+    private httpService: HttpClient,
+    private el: ElementRef,
+    private renderer: Renderer2
+  ) {
     // preload the images
     const pieceNames = ['wp', 'wr', 'wn', 'wb', 'wq', 'wk', 'bp', 'br', 'bn', 'bb', 'bq', 'bk'];
     const promises = pieceNames.map(name => this.loadImage(`../assets/pieces/${name}.svg`));
@@ -46,9 +88,23 @@ export class AppComponent implements OnInit, OnDestroy {
     this.color = "white";
     this.renderer.appendChild(this.el.nativeElement, this.canvas);
     this.loadPosition(this.START_POSITION);
-    this.canvas.addEventListener('click', (event) =>
-      this.handleClick(event.offsetX, event.offsetY)
-    );
+    this.canvas.addEventListener('click', (event) => {
+      if (this.loggedIn) {
+        this.handleClick(event.offsetX, event.offsetY);
+      }
+    });
+    this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
+  }
+
+  public reset(): void {
+    this.loadPosition(this.START_POSITION);
+    this.currentPos = this.START_POSITION;
+    this.color = "white";
+    this.selectedPiecePosition = { row: -1, col: -1 };
+    this.httpService.post('/move', {
+      fen: this.currentPos,
+      color: this.color
+    })
   }
 
   private loadImage(src: string): Promise<HTMLImageElement> {
@@ -153,6 +209,10 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       this.loadPosition(move);
     }
+    this.httpService.post('/move', {
+      fen: this.currentPos,
+      color: this.color
+    });
   }
 
   getNewPos(startRow: number, startCol: number, endRow: number, endCol: number): string {

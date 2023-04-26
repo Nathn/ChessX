@@ -1,1 +1,6 @@
-<!-- nothing to see here -->
+<form #loginForm="ngForm" (ngSubmit)="login()">
+    <input type="password" name="password" [(ngModel)]="password" #passwordInput="ngModel" required *ngIf="!loggedIn" />
+    <button type="submit" *ngIf="!loggedIn">Login</button>
+</form>
+<button (click)="logout()" *ngIf="loggedIn">Logout</button>
+<button (click)="reset()" *ngIf="loggedIn">Reset</button>
