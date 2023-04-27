@@ -53,7 +53,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   public logout(): void {
     this.loggedIn = false;
+    this.selectedPiecePosition = { row: -1, col: -1 };
     localStorage.setItem('loggedIn', '0');
+    this.refreshSetTimeout = setInterval(() => this.refresh(), 100);
   }
 
   public refresh(): void {
@@ -93,7 +95,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.handleClick(event.offsetX, event.offsetY);
       }
     });
-    this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
+    this.refreshSetTimeout = setInterval(() => this.refresh(), 100);
   }
 
   public reset(): void {
@@ -104,7 +106,19 @@ export class AppComponent implements OnInit, OnDestroy {
     this.httpService.post('/move', {
       fen: this.currentPos,
       color: this.color
-    })
+    }).subscribe((data: any) => {});
+  }
+
+  public undo(): void {
+    this.httpService.post('/undo', {
+      fen: this.currentPos,
+      color: this.color
+    }).subscribe((data: any) => {
+      if (data) {
+        this.loadPosition(data.fen);
+        this.color = data.color;
+      }
+    });
   }
 
   private loadImage(src: string): Promise<HTMLImageElement> {
@@ -212,7 +226,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.httpService.post('/move', {
       fen: this.currentPos,
       color: this.color
-    });
+    }).subscribe((data: any) => {});
   }
 
   getNewPos(startRow: number, startCol: number, endRow: number, endCol: number): string {
