@@ -63,20 +63,24 @@ export class AppComponent implements OnInit, OnDestroy {
     this.loggedIn = false;
     this.selectedPiecePosition = { row: -1, col: -1 };
     localStorage.setItem('loggedIn', '0');
-    this.refreshSetTimeout = setInterval(() => this.refresh(), 100);
+    this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
   }
 
   public refresh(): void {
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
-        if (!this.loggedIn) {
+        if (!this.loggedIn || this.currentPos !== data.fen) {
           this.loadPosition(data.fen);
           this.color = data.color;
         }
         this.moves = data.moves;
-        this.stats.innerHTML = `Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
+        this.stats.innerHTML = this.getStatsHTML();
       }
     });
+  }
+
+  public getStatsHTML(): string {
+    return `Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
   }
 
 
@@ -109,7 +113,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
-        this.stats.innerHTML = `Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
+        this.stats.innerHTML = this.getStatsHTML();
       }
     });
     this.canvas.addEventListener('click', (event) => {
@@ -117,7 +121,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.handleClick(event.offsetX, event.offsetY);
       }
     });
-    this.refreshSetTimeout = setInterval(() => this.refresh(), 100);
+    this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
   }
 
   public reset(): void {
@@ -128,7 +132,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.httpService.post('/reset', {
       fen: this.currentPos,
       color: this.color
-    }).subscribe((data: any) => {});
+    }).subscribe((data: any) => {
+      if (data) {
+        this.loadPosition(data.fen);
+        this.color = data.color;
+        this.moves = data.moves;
+        this.stats.innerHTML = this.getStatsHTML();
+      }
+    });
   }
 
   public undo(): void {
@@ -139,6 +150,8 @@ export class AppComponent implements OnInit, OnDestroy {
       if (data) {
         this.loadPosition(data.fen);
         this.color = data.color;
+        this.moves = data.moves;
+        this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }
@@ -248,7 +261,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.httpService.post('/move', {
       fen: this.currentPos,
       color: this.color
-    }).subscribe((data: any) => {});
+    }).subscribe((data: any) => {
+      if (data.success) {
+        this.loadPosition(data.fen);
+        this.color = data.color;
+        this.moves = data.moves;
+        this.stats.innerHTML = this.getStatsHTML();
+      }
+    });
   }
 
   getNewPos(startRow: number, startCol: number, endRow: number, endCol: number): string {
@@ -411,6 +431,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.boardSize = Math.min(window.innerWidth, window.innerHeight) * 0.9;
     this.canvas.width = this.boardSize;
     this.canvas.height = this.boardSize;
+    this.httpService.get("/game").subscribe((data: any) => {
+      if (data) {
+        this.loadPosition(data.fen);
+        this.color = data.color;
+        this.moves = data.moves;
+        this.stats.innerHTML = this.getStatsHTML();
+      }
+    });
   }
 
   public ngOnDestroy(): void {
