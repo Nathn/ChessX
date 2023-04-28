@@ -69,9 +69,12 @@ export class AppComponent implements OnInit, OnDestroy {
   public refresh(): void {
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
-        this.loadPosition(data.fen);
-        this.color = data.color;
+        if (!this.loggedIn) {
+          this.loadPosition(data.fen);
+          this.color = data.color;
+        }
         this.moves = data.moves;
+        this.stats.innerHTML = `Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
       }
     });
   }
@@ -99,7 +102,16 @@ export class AppComponent implements OnInit, OnDestroy {
     this.canvas.height = this.boardSize;
     this.color = "white";
     this.renderer.appendChild(this.el.nativeElement, this.canvas);
+    this.renderer.appendChild(this.el.nativeElement, this.stats);
     this.loadPosition(this.START_POSITION);
+    this.httpService.get("/game").subscribe((data: any) => {
+      if (data) {
+        this.loadPosition(data.fen);
+        this.color = data.color;
+        this.moves = data.moves;
+        this.stats.innerHTML = `Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
+      }
+    });
     this.canvas.addEventListener('click', (event) => {
       if (this.loggedIn) {
         this.handleClick(event.offsetX, event.offsetY);
@@ -113,7 +125,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.currentPos = this.START_POSITION;
     this.color = "white";
     this.selectedPiecePosition = { row: -1, col: -1 };
-    this.httpService.post('/move', {
+    this.httpService.post('/reset', {
       fen: this.currentPos,
       color: this.color
     }).subscribe((data: any) => {});
@@ -397,6 +409,8 @@ export class AppComponent implements OnInit, OnDestroy {
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.boardSize = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+    this.canvas.width = this.boardSize;
+    this.canvas.height = this.boardSize;
   }
 
   public ngOnDestroy(): void {
