@@ -4,7 +4,9 @@ import {
   Renderer2,
   ElementRef,
   OnDestroy,
-  Input
+  Input,
+  Output,
+  HostListener
 } from '@angular/core';
 import {
   HttpClient,
@@ -28,12 +30,18 @@ export class AppComponent implements OnInit, OnDestroy {
   public blackTileColor = 'rgb(52, 80, 106)';
   public whiteTileColor = 'rgb(162, 161, 146)';
   public UIColor = 'rgba(125, 87, 75, 0.75)';
+  public boardSize = 800;
 
   public password: string = "";
 
   private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
+  private stats: HTMLDivElement = this.renderer.createElement('div');
   private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
   private currentPos: string = "";
+  private moves: {
+    fen: String,
+    color: String
+  }[] = [];
   private selectedPiecePosition: { row: number, col: number } = { row: -1, col: -1 };
   private color: string = "white";
   private refreshSetTimeout: any;
@@ -63,6 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
       if (data) {
         this.loadPosition(data.fen);
         this.color = data.color;
+        this.moves = data.moves;
       }
     });
   }
@@ -85,8 +94,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
-    this.canvas.width = 800;
-    this.canvas.height = 800;
+    this.boardSize = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+    this.canvas.width = this.boardSize;
+    this.canvas.height = this.boardSize;
     this.color = "white";
     this.renderer.appendChild(this.el.nativeElement, this.canvas);
     this.loadPosition(this.START_POSITION);
@@ -132,12 +142,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private loadPosition(fen: string): void {
     this.ctx.fillStyle = this.blackTileColor;
-    this.ctx.fillRect(0, 0, 800, 800);
+    this.ctx.fillRect(0, 0, this.boardSize, this.boardSize);
     this.ctx.fillStyle = this.whiteTileColor;
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         if ((i + j) % 2 === 0) {
-          this.ctx.fillRect(i * 100, j * 100, 100, 100);
+          this.ctx.fillRect(i * (this.boardSize / 8), j * (this.boardSize / 8), (this.boardSize / 8), (this.boardSize / 8));
         }
       }
     }
@@ -175,12 +185,12 @@ export class AppComponent implements OnInit, OnDestroy {
               file = 'wk'; break;
           }
           const img = this.pieces[file];
-          if (img) this.ctx.drawImage(img, col * 100, i * 100, 100, 100);
+          if (img) this.ctx.drawImage(img, col * (this.boardSize / 8), i * (this.boardSize / 8), (this.boardSize / 8), (this.boardSize / 8));
           // if the piece is selected, draw a red square around it
           if (this.selectedPiecePosition.row === i && this.selectedPiecePosition.col === col  && img) {
             this.ctx.strokeStyle = this.UIColor;
             this.ctx.lineWidth = 5;
-            this.ctx.strokeRect(col * 100, i * 100, 100, 100);
+            this.ctx.strokeRect(col * (this.boardSize / 8), i * (this.boardSize / 8), (this.boardSize / 8), (this.boardSize / 8));
           }
           // for the position, check with the moveIsValid function to see if the piece can move there
           // if so, draw a red dot on the square
@@ -191,7 +201,7 @@ export class AppComponent implements OnInit, OnDestroy {
             if (this.moveIsValid(this.selectedPiecePosition.row, this.selectedPiecePosition.col, i, col)) {
               this.ctx.fillStyle = this.UIColor;
               this.ctx.beginPath();
-              this.ctx.arc(col * 100 + 50, i * 100 + 50, 10, 0, 2 * Math.PI);
+              this.ctx.arc(col * (this.boardSize / 8) + (this.boardSize / 16), i * (this.boardSize / 8) + (this.boardSize / 16), (this.boardSize / 80), 0, 2 * Math.PI);
               this.ctx.fill();
             }
           }
@@ -206,8 +216,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private handleClick(x: number, y: number): void {
-    const col = Math.floor(x / 100);
-    const row = Math.floor(y / 100);
+    const col = Math.floor(x / (this.boardSize / 8));
+    const row = Math.floor(y / (this.boardSize / 8));
     if (this.selectedPiecePosition.row === -1) {
       this.selectedPiecePosition.row = row;
       this.selectedPiecePosition.col = col;
@@ -382,6 +392,11 @@ export class AppComponent implements OnInit, OnDestroy {
       return false;
     }
     return true;
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.boardSize = Math.min(window.innerWidth, window.innerHeight) * 0.9;
   }
 
   public ngOnDestroy(): void {
