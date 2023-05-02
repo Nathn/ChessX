@@ -34,6 +34,8 @@ export class AppComponent implements OnInit, OnDestroy {
   public boardSizeRelative = 0.85;
 
   public password: string = "";
+  public whiteName: string = "White";
+  public blackName: string = "Black";
 
   private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
   private stats: HTMLDivElement = this.renderer.createElement('div');
@@ -82,7 +84,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public getStatsHTML(): string {
-    return `Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
+    return `${this.whiteName} (Blancs) vs ${this.blackName} (Noirs)<br />Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
   }
 
 
@@ -117,6 +119,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
+        this.whiteName = data.white;
+        this.blackName = data.black;
         this.stats.innerHTML = this.getStatsHTML();
       }
     });
@@ -141,6 +145,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
+        this.whiteName = data.white;
+        this.blackName = data.black;
         this.stats.innerHTML = this.getStatsHTML();
       }
     });
@@ -155,7 +161,21 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
+        this.whiteName = data.white;
+        this.blackName = data.black;
         this.stats.innerHTML = this.getStatsHTML();
+      }
+    });
+  }
+
+  public updateNames(): void {
+    this.httpService.post('/names', {
+      white: this.whiteName,
+      black: this.blackName
+    }).subscribe((data: any) => {
+      if (data) {
+        this.whiteName = data.white;
+        this.blackName = data.black;
       }
     });
   }
@@ -440,11 +460,16 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
+        this.whiteName = data.white;
+        this.blackName = data.black;
         this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }
 
   public ngOnDestroy(): void {
+    if (this.refreshSetTimeout) {
+      clearTimeout(this.refreshSetTimeout);
+    }
   }
 }

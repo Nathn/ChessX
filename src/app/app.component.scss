@@ -5,6 +5,7 @@ canvas {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    z-index: 1;
 }
 
 .controls {
@@ -28,7 +29,7 @@ canvas {
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
     font-family: sans-serif;
-    font-size: 14px;
+    font-size: 20px;
     font-weight: 500;
     line-height: 1.5;
     border-radius: 3px;
@@ -51,6 +52,9 @@ canvas {
 }
 
 @media screen and (max-width: 1145px) {
+    .stats {
+        font-size: 16px;
+    }
     .tchat {
         top: 95%;
         left: 10%;

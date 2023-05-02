@@ -6,4 +6,9 @@
     <button (click)="logout()" *ngIf="loggedIn">Logout</button>
     <button (click)="reset()" *ngIf="loggedIn">Reset</button>
     <button (click)="undo()" *ngIf="loggedIn">Undo</button>
+    <form #namesForm="ngForm" (ngSubmit)="updateNames()" *ngIf="loggedIn">
+        <input type="text" name="whiteName" placeholder="White" [(ngModel)]="whiteName" #whiteNameInput="ngModel" required />
+        <input type="text" name="blackName" placeholder="Black" [(ngModel)]="blackName" #blackNameInput="ngModel" required />
+        <button type="submit">Update names</button>
+    </form>
 </div>

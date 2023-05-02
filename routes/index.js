@@ -90,6 +90,21 @@ router.post('/reset', async (req, res) => {
     }
 });
 
+router.post('/names', async (req, res) => {
+    let game = await Game.find();
+    if (game.length === 0) {
+        res.send({
+            white: 'White',
+            black: 'Black'
+        });
+    } else {
+        game[0].white = req.body.white;
+        game[0].black = req.body.black;
+        await game[0].save();
+        res.send(game[0]);
+    }
+});
+
 router.get('/*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../dist/chess-x/index.html'));
 });
