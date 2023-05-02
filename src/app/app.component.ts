@@ -31,11 +31,13 @@ export class AppComponent implements OnInit, OnDestroy {
   public whiteTileColor = 'rgb(162, 161, 146)';
   public UIColor = 'rgba(125, 87, 75, 0.75)';
   public boardSize = 800;
+  public boardSizeRelative = 0.85;
 
   public password: string = "";
 
   private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
   private stats: HTMLDivElement = this.renderer.createElement('div');
+  private tchat: HTMLDivElement = this.renderer.createElement('div');
   private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
   private currentPos: string = "";
   private moves: {
@@ -101,12 +103,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
-    this.boardSize = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+    this.boardSize = Math.min(window.innerWidth, window.innerHeight) * this.boardSizeRelative;
     this.canvas.width = this.boardSize;
     this.canvas.height = this.boardSize;
     this.color = "white";
     this.renderer.appendChild(this.el.nativeElement, this.canvas);
     this.renderer.appendChild(this.el.nativeElement, this.stats);
+    this.renderer.appendChild(this.el.nativeElement, this.tchat);
+    this.stats.classList.add('stats'); this.tchat.classList.add('tchat');
     this.loadPosition(this.START_POSITION);
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
@@ -428,7 +432,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    this.boardSize = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+    this.boardSize = Math.min(window.innerWidth, window.innerHeight) * this.boardSizeRelative;
     this.canvas.width = this.boardSize;
     this.canvas.height = this.boardSize;
     this.httpService.get("/game").subscribe((data: any) => {
