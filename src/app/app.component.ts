@@ -424,7 +424,9 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     // check if the piece is a rook
     if (startPiece.toLowerCase() === "r") {
-      return true;
+      if (this.currentPos.split("/")[row][col] !== "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+        return true;
+      }
       if (startRow === endRow || startCol === endCol) {
         let row = startRow;
         let col = startCol;
@@ -472,7 +474,9 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     // check if the piece is a king
     if (startPiece.toLowerCase() === "k") {
-      return true;
+      if (this.currentPos.split("/")[row][col] !== "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
+        return true;
+      }
       if ((startRow + 1 === endRow && startCol === endCol) ||
           (startRow - 1 === endRow && startCol === endCol) ||
           (startRow === endRow && startCol + 1 === endCol) ||
