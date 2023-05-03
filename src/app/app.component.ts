@@ -83,6 +83,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public closeTchat(): void {
+    console.log("closeTchatpzaodjazonzoif");
     this.tchatVisible = false;
   }
 
@@ -110,14 +111,6 @@ export class AppComponent implements OnInit, OnDestroy {
   public getStatsHTML(): string {
     return `${this.whiteName} (Blancs) vs ${this.blackName} (Noirs)<br />Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
   }
-
-  public getTchatHTML(): string {
-    let msgs = this.tchatMessages.map(message => `<span class="tchat-message">${message.datetime} - ${message.text}</span>`).join('<br />');
-    let input = `<input type="text" class="tchat-input" value="${this.tchatInputValue}" />`;
-    let send = `<button class="tchat-send">Envoyer</button>`;
-    return `${msgs}<br />${input}${send}`;
-  }
-
 
   constructor(
     private httpService: HttpClient,

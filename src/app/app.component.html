@@ -14,7 +14,7 @@
     </form>
 </div>
 <div class="tchat" *ngIf="tchatVisible">
-    <button (click)="closeTchat()" class="closeTchatButton">X</button>
+    <button (click)="closeTchat();" class="closeTchatButton">X</button>
     <div class="messages">
         <div *ngFor="let message of tchatMessages" class="message">
             <span class="datetime">{{message.datetime | date:'HH:mm'}} | </span>
