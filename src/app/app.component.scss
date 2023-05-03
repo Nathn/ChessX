@@ -79,6 +79,7 @@ canvas {
     position: absolute;
     bottom: 30px;
     font-size: 14px;
+    user-select: none;
     overflow-y: scroll;
     .message {
         word-break: break-all;

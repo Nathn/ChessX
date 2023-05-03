@@ -8,9 +8,17 @@
     <button (click)="reset()" *ngIf="loggedIn">Reset</button>
     <button (click)="undo()" *ngIf="loggedIn">Undo</button>
     <button (click)="freeMode = !freeMode" *ngIf="loggedIn">Free Mode</button>
+    <br />
+    <button (click)="castle('black', 'queen')" *ngIf="loggedIn">CBQ</button>
+    <button (click)="castle('black', 'king')" *ngIf="loggedIn">CBK</button>
+    <br />
+    <button (click)="castle('white', 'queen')" *ngIf="loggedIn">CWQ</button>
+    <button (click)="castle('white', 'king')" *ngIf="loggedIn">CWK</button>
     <form #namesForm="ngForm" (ngSubmit)="updateNames()" *ngIf="loggedIn">
         <input type="text" name="whiteName" placeholder="White" [(ngModel)]="whiteName" #whiteNameInput="ngModel" required />
+        <br />
         <input type="text" name="blackName" placeholder="Black" [(ngModel)]="blackName" #blackNameInput="ngModel" required />
+        <br />
         <button type="submit">Update names</button>
     </form>
 </div>

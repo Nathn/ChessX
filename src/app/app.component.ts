@@ -178,6 +178,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public undo(): void {
+    this.selectedPiecePosition = { row: -1, col: -1 };
     this.httpService.post('/undo', {
       fen: this.currentPos,
       color: this.color
@@ -351,6 +352,46 @@ export class AppComponent implements OnInit, OnDestroy {
     this.color = this.color === "white" ? "black" : "white";
     // join the rows back into a single string and return the new position
     return rows.join("/");
+  }
+
+  castle(color: string, side: string): void {
+    // convert the current position to an array of rows
+    const rows = this.currentPos.split("/");
+    // get the king's starting position
+    const startRow = color === "white" ? 7 : 0;
+    const startCol = 4;
+    // get the king's ending position
+    const endRow = color === "white" ? 7 : 0;
+    const endCol = side === "king" ? 6 : 2;
+    // remove the king from the starting position
+    rows[startRow] = rows[startRow].substr(0, startCol) + "." + rows[startRow].substr(startCol + 1);
+    // place the king in the ending position
+    rows[endRow] = rows[endRow].substr(0, endCol) + (color === "white" ? "K" : "k") + rows[endRow].substr(endCol + 1);
+    // get the rook's starting position
+    const rookStartRow = color === "white" ? 7 : 0;
+    const rookStartCol = side === "king" ? 7 : 0;
+    // get the rook's ending position
+    const rookEndRow = color === "white" ? 7 : 0;
+    const rookEndCol = side === "king" ? 5 : 3;
+    // remove the rook from the starting position
+    rows[rookStartRow] = rows[rookStartRow].substr(0, rookStartCol) + "." + rows[rookStartRow].substr(rookStartCol + 1);
+    // place the rook in the ending position
+    rows[rookEndRow] = rows[rookEndRow].substr(0, rookEndCol) + (color === "white" ? "R" : "r") + rows[rookEndRow].substr(rookEndCol + 1);
+    // switch the player's color
+    this.color = this.color === "white" ? "black" : "white";
+    // join the rows back into a single string and return the new position
+    this.loadPosition(rows.join("/"));
+    this.httpService.post('/move', {
+      fen: this.currentPos,
+      color: this.color
+    }).subscribe((data: any) => {
+      if (data.success) {
+        this.loadPosition(data.fen);
+        this.color = data.color;
+        this.moves = data.moves;
+        this.stats.innerHTML = this.getStatsHTML();
+      }
+    });
   }
 
   moveIsValid(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
