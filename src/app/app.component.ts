@@ -40,6 +40,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public tchatInputValue: string = "";
   public controlsVisible: boolean = true;
   public tchatVisible: boolean = true;
+  public freeMode: boolean = false;
   public tchatMessages: {
     text: String,
     datetime: Date
@@ -353,6 +354,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   moveIsValid(startRow: number, startCol: number, endRow: number, endCol: number): boolean {
+    if (this.freeMode) {
+      return true;
+    }
     // convert the current position to an array of rows
     const rows = this.currentPos.split("/");
     // get the piece being moved and the piece at the ending position
@@ -424,9 +428,6 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     // check if the piece is a rook
     if (startPiece.toLowerCase() === "r") {
-      if (this.currentPos.split("/")[row][col] !== "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
-        return true;
-      }
       if (startRow === endRow || startCol === endCol) {
         let row = startRow;
         let col = startCol;
@@ -474,9 +475,6 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     // check if the piece is a king
     if (startPiece.toLowerCase() === "k") {
-      if (this.currentPos.split("/")[row][col] !== "." || ((endPiece.toLowerCase() == endPiece) != (startPiece.toLowerCase() == startPiece))) {
-        return true;
-      }
       if ((startRow + 1 === endRow && startCol === endCol) ||
           (startRow - 1 === endRow && startCol === endCol) ||
           (startRow === endRow && startCol + 1 === endCol) ||
