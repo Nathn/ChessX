@@ -205,6 +205,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public sendTchatMessage(): void {
+    if (!this.tchatInputValue.trim()) {
+      return;
+    }
     this.httpService.post('/tchat', {
       text: this.tchatInputValue
     }).subscribe((data: any) => {
@@ -421,6 +424,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     // check if the piece is a rook
     if (startPiece.toLowerCase() === "r") {
+      return true;
       if (startRow === endRow || startCol === endCol) {
         let row = startRow;
         let col = startCol;
@@ -468,6 +472,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
     // check if the piece is a king
     if (startPiece.toLowerCase() === "k") {
+      return true;
       if ((startRow + 1 === endRow && startCol === endCol) ||
           (startRow - 1 === endRow && startCol === endCol) ||
           (startRow === endRow && startCol + 1 === endCol) ||
@@ -480,6 +485,12 @@ export class AppComponent implements OnInit, OnDestroy {
           return true;
         }
       }
+      // if (startRow === endRow && startCol === endCol + 2 && this.currentPos.split("/")[startRow][startCol + 1] === "." && this.currentPos.split("/")[startRow][startCol + 2] === ".") {
+      //   console.log("castling");
+      //   if (rows[startRow][startCol + 3] === "r") {
+      //     return true;
+      //   }
+      // }
       return false;
     }
     return true;

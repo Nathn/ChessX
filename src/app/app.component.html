@@ -22,6 +22,6 @@
         </div>
     </div>
     <form class="tchatForm" #tchatForm="ngForm" (ngSubmit)="sendTchatMessage()">
-        <input type="text" name="message" [(ngModel)]="tchatInputValue" #messageInput="ngModel" required maxlength="42" />
+        <input type="text" name="message" [(ngModel)]="tchatInputValue" #messageInput="ngModel" required maxlength="42" autocomplete="off" />
     </form>
 </div>
