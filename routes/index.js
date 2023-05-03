@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 const Game = require('../models/Game');
+const Tchat = require('../models/Tchat');
 
 const router = express.Router();
 
@@ -102,6 +103,43 @@ router.post('/names', async (req, res) => {
         game[0].black = req.body.black;
         await game[0].save();
         res.send(game[0]);
+    }
+});
+
+router.get('/tchat', async (req, res) => {
+    let tchat = await Tchat.find();
+    if (tchat.length === 0) {
+        tchat = new Tchat({
+            messages: []
+        });
+        await tchat.save();
+        res.send(tchat.messages);
+    } else {
+        res.send(tchat.messages);
+    }
+});
+
+router.post('/tchat', async (req, res) => {
+    if (!req.body.text) {
+        res.send([]);
+    }
+    let tchat = await Tchat.find();
+    if (tchat.length === 0) {
+        tchat = new Tchat({
+            messages: []
+        });
+        await tchat.save();
+        tchat.messages.push({
+            text: req.body.text
+        });
+        await tchat.save();
+        res.send(tchat.messages);
+    } else {
+        tchat[0].messages.push({
+            text: req.body.text
+        });
+        await tchat[0].save();
+        res.send(tchat[0].messages);
     }
 });
 

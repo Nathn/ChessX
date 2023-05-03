@@ -1,7 +1,8 @@
-<div class="controls">
-    <form #loginForm="ngForm" (ngSubmit)="login()">
-        <input type="password" name="password" [(ngModel)]="password" #passwordInput="ngModel" required *ngIf="!loggedIn" />
-        <button type="submit" *ngIf="!loggedIn">Connection</button>
+<div class="controls" *ngIf="controlsVisible">
+    <form #loginForm="ngForm" (ngSubmit)="login()" *ngIf="!loggedIn">
+        <input type="password" name="password" [(ngModel)]="password" #passwordInput="ngModel" required />
+        <button type="submit">Connection</button>
+        <button (click)="closeControls()" *ngIf="!loggedIn">X</button>
     </form>
     <button (click)="logout()" *ngIf="loggedIn">Logout</button>
     <button (click)="reset()" *ngIf="loggedIn">Reset</button>

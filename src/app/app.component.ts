@@ -36,6 +36,9 @@ export class AppComponent implements OnInit, OnDestroy {
   public password: string = "";
   public whiteName: string = "White";
   public blackName: string = "Black";
+  public tchatInputValue: string = "";
+  public controlsVisible: boolean = true;
+  public tchatVisible: boolean = true;
 
   private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
   private stats: HTMLDivElement = this.renderer.createElement('div');
@@ -48,7 +51,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }[] = [];
   private selectedPiecePosition: { row: number, col: number } = { row: -1, col: -1 };
   private color: string = "white";
+  private tchatMessages: string[] = [];
   private refreshSetTimeout: any;
+  private refreshTchatSetTimeout: any;
 
   private START_POSITION = "rnbqkbnr/pppppppp/......../......../......../......../PPPPPPPP/RNBQKBNR"
 
@@ -70,6 +75,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
   }
 
+  public closeControls(): void {
+    this.controlsVisible = false;
+  }
+
+  public closeTchat(): void {
+    this.tchatVisible = false;
+  }
+
   public refresh(): void {
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
@@ -79,6 +92,14 @@ export class AppComponent implements OnInit, OnDestroy {
         }
         this.moves = data.moves;
         this.stats.innerHTML = this.getStatsHTML();
+      }
+    });
+  }
+
+  public refreshTchat(): void {
+    this.httpService.get("/tchat").subscribe((data: any) => {
+      if (data) {
+        this.tchatMessages = data.messages.slice(-50);
       }
     });
   }
@@ -130,6 +151,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     });
     this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
+    this.refreshTchatSetTimeout = setInterval(() => this.refreshTchat(), 1000);
   }
 
   public reset(): void {
@@ -176,6 +198,17 @@ export class AppComponent implements OnInit, OnDestroy {
       if (data) {
         this.whiteName = data.white;
         this.blackName = data.black;
+      }
+    });
+  }
+
+  public sendTchatMessage(): void {
+    this.httpService.post('/tchat', {
+      text: this.tchatInputValue
+    }).subscribe((data: any) => {
+      if (data) {
+        this.tchatInputValue = "";
+        this.tchatMessages = data.messages.slice(-50);
       }
     });
   }
@@ -470,6 +503,9 @@ export class AppComponent implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     if (this.refreshSetTimeout) {
       clearTimeout(this.refreshSetTimeout);
+    }
+    if (this.refreshTchatSetTimeout) {
+      clearTimeout(this.refreshTchatSetTimeout);
     }
   }
 }
