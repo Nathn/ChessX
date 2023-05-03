@@ -36,13 +36,12 @@ canvas {
 }
 
 .tchat {
-    display: none;
     position: absolute;
     top: 25%;
     right: 0;
     padding: 10px;
-    background-color: #00000080;
-    color: #fff;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
     font-family: sans-serif;
     font-size: 12px;
     line-height: 1.5;
@@ -66,5 +65,20 @@ canvas {
 @media screen and (max-width: 500px) {
     .tchat {
         top: 75%;
+    }
+}
+
+.messages {
+    height: 90%;
+    font-size: 14px;
+    overflow-y: scroll;
+}
+
+.tchatForm {
+    position: absolute;
+    bottom: 5px;
+    width: calc(100% - 20px);
+    input {
+        width: calc(100% - 8px);
     }
 }

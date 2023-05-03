@@ -113,9 +113,9 @@ router.get('/tchat', async (req, res) => {
             messages: []
         });
         await tchat.save();
-        res.send(tchat.messages);
+        res.send(tchat[0].messages);
     } else {
-        res.send(tchat.messages);
+        res.send(tchat[0].messages);
     }
 });
 

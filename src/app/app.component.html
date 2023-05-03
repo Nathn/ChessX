@@ -13,3 +13,14 @@
         <button type="submit">Update names</button>
     </form>
 </div>
+<div class="tchat">
+    <div class="messages">
+        <div *ngFor="let message of tchatMessages">
+            <span class="datetime">{{message.datetime | date:'HH:mm:ss'}} | </span>
+            <span class="text">{{message.text}}</span>
+        </div>
+    </div>
+    <form class="tchatForm" #tchatForm="ngForm" (ngSubmit)="sendTchatMessage()">
+        <input type="text" name="message" [(ngModel)]="tchatInputValue" #messageInput="ngModel" required />
+    </form>
+</div>

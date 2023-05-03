@@ -32,6 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public UIColor = 'rgba(125, 87, 75, 0.75)';
   public boardSize = 800;
   public boardSizeRelative = 0.85;
+  public tchatLimit = 16;
 
   public password: string = "";
   public whiteName: string = "White";
@@ -39,10 +40,13 @@ export class AppComponent implements OnInit, OnDestroy {
   public tchatInputValue: string = "";
   public controlsVisible: boolean = true;
   public tchatVisible: boolean = true;
+  public tchatMessages: {
+    text: String,
+    datetime: Date
+  }[] = [];
 
   private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
   private stats: HTMLDivElement = this.renderer.createElement('div');
-  private tchat: HTMLDivElement = this.renderer.createElement('div');
   private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
   private currentPos: string = "";
   private moves: {
@@ -51,7 +55,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }[] = [];
   private selectedPiecePosition: { row: number, col: number } = { row: -1, col: -1 };
   private color: string = "white";
-  private tchatMessages: string[] = [];
   private refreshSetTimeout: any;
   private refreshTchatSetTimeout: any;
 
@@ -99,13 +102,20 @@ export class AppComponent implements OnInit, OnDestroy {
   public refreshTchat(): void {
     this.httpService.get("/tchat").subscribe((data: any) => {
       if (data) {
-        this.tchatMessages = data.messages.slice(-50);
+        this.tchatMessages = data.slice(-this.tchatLimit);
       }
     });
   }
 
   public getStatsHTML(): string {
     return `${this.whiteName} (Blancs) vs ${this.blackName} (Noirs)<br />Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
+  }
+
+  public getTchatHTML(): string {
+    let msgs = this.tchatMessages.map(message => `<span class="tchat-message">${message.datetime} - ${message.text}</span>`).join('<br />');
+    let input = `<input type="text" class="tchat-input" value="${this.tchatInputValue}" />`;
+    let send = `<button class="tchat-send">Envoyer</button>`;
+    return `${msgs}<br />${input}${send}`;
   }
 
 
@@ -132,8 +142,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.color = "white";
     this.renderer.appendChild(this.el.nativeElement, this.canvas);
     this.renderer.appendChild(this.el.nativeElement, this.stats);
-    this.renderer.appendChild(this.el.nativeElement, this.tchat);
-    this.stats.classList.add('stats'); this.tchat.classList.add('tchat');
+    this.stats.classList.add('stats');
     this.loadPosition(this.START_POSITION);
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
@@ -208,7 +217,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }).subscribe((data: any) => {
       if (data) {
         this.tchatInputValue = "";
-        this.tchatMessages = data.messages.slice(-50);
+        this.tchatMessages = data.slice(-this.tchatLimit);
       }
     });
   }
@@ -493,8 +502,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
-        this.whiteName = data.white;
-        this.blackName = data.black;
         this.stats.innerHTML = this.getStatsHTML();
       }
     });
