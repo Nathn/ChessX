@@ -32,7 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public UIColor = 'rgba(125, 87, 75, 0.75)';
   public boardSize = 800;
   public boardSizeRelative = 0.85;
-  public tchatLimit = 16;
+  public tchatLimit = 50;
 
   public password: string = "";
   public whiteName: string = "White";

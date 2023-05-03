@@ -68,10 +68,20 @@ canvas {
     }
 }
 
+.closeTchatButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
 .messages {
-    height: 90%;
+    position: absolute;
+    bottom: 30px;
     font-size: 14px;
     overflow-y: scroll;
+    .message {
+        word-break: break-all;
+    }
 }
 
 .tchatForm {
