@@ -528,12 +528,6 @@ export class AppComponent implements OnInit, OnDestroy {
           return true;
         }
       }
-      // if (startRow === endRow && startCol === endCol + 2 && this.currentPos.split("/")[startRow][startCol + 1] === "." && this.currentPos.split("/")[startRow][startCol + 2] === ".") {
-      //   console.log("castling");
-      //   if (rows[startRow][startCol + 3] === "r") {
-      //     return true;
-      //   }
-      // }
       return false;
     }
     return true;

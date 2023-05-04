@@ -68,6 +68,7 @@ router.post('/undo', async (req, res) => {
 
 router.post('/reset', async (req, res) => {
     let game = await Game.find();
+    let tchat = await Tchat.find();
     if (game.length === 0) {
         game = new Game({
             fen: req.body.fen,
@@ -86,7 +87,9 @@ router.post('/reset', async (req, res) => {
             fen: req.body.fen,
             color: req.body.color
         }];
+        tchat[0].messages = [];
         await game[0].save();
+        await tchat[0].save();
         res.send(game[0]);
     }
 });
