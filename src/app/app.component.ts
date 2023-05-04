@@ -63,6 +63,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private pieces: { [key: string]: HTMLImageElement } = {};
 
+  public playMovePieceAudio() {
+    let movePieceAudio = new Audio();
+    movePieceAudio.src = "../../../assets/sounds/move.mp3";
+    movePieceAudio.load();
+    movePieceAudio.play();
+  }
+
   public login(): void {
     if (this.password === environment.password) {
       console.log("Logged in successfully!");
@@ -84,7 +91,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public closeTchat(): void {
-    console.log("closeTchatpzaodjazonzoif");
     this.tchatVisible = false;
   }
 
@@ -92,6 +98,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
         if (!this.loggedIn || this.currentPos !== data.fen) {
+          if (this.currentPos !== data.fen) {
+            this.playMovePieceAudio();
+          }
           this.loadPosition(data.fen);
           this.color = data.color;
         }

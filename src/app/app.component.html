@@ -8,10 +8,10 @@
     <button (click)="reset()" *ngIf="loggedIn">Reset</button>
     <button (click)="undo()" *ngIf="loggedIn">Undo</button>
     <button (click)="freeMode = !freeMode" *ngIf="loggedIn">Free Mode</button>
-    <br />
+    <br *ngIf="loggedIn"/>
     <button (click)="castle('black', 'queen')" *ngIf="loggedIn">CBQ</button>
     <button (click)="castle('black', 'king')" *ngIf="loggedIn">CBK</button>
-    <br />
+    <br *ngIf="loggedIn"/>
     <button (click)="castle('white', 'queen')" *ngIf="loggedIn">CWQ</button>
     <button (click)="castle('white', 'king')" *ngIf="loggedIn">CWK</button>
     <form #namesForm="ngForm" (ngSubmit)="updateNames()" *ngIf="loggedIn">
