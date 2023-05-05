@@ -25,6 +25,9 @@ import {
 
 export class AppComponent implements OnInit, OnDestroy {
   @Input() loggedIn: boolean = parseInt(localStorage.getItem('loggedIn') || '0') === 1;
+  @Input() colorPOV: string = localStorage.getItem('colorPOV') || 'white';
+
+  public math = Math;
 
   public title = 'ChessX';
   public blackTileColor = 'rgb(52, 80, 106)';
@@ -37,6 +40,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public password: string = "";
   public whiteName: string = "White";
   public blackName: string = "Black";
+  public color: string = "white";
   public tchatInputValue: string = "";
   public controlsVisible: boolean = true;
   public tchatVisible: boolean = true;
@@ -45,17 +49,15 @@ export class AppComponent implements OnInit, OnDestroy {
     text: String,
     datetime: Date
   }[] = [];
-
-  private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
-  private stats: HTMLDivElement = this.renderer.createElement('div');
-  private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
-  private currentPos: string = "";
-  private moves: {
+  public moves: {
     fen: String,
     color: String
   }[] = [];
+
+  private canvas: HTMLCanvasElement = this.renderer.createElement('canvas');
+  private ctx: CanvasRenderingContext2D = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+  private currentPos: string = "";
   private selectedPiecePosition: { row: number, col: number } = { row: -1, col: -1 };
-  private color: string = "white";
   private refreshSetTimeout: any;
   private refreshTchatSetTimeout: any;
 
@@ -98,14 +100,13 @@ export class AppComponent implements OnInit, OnDestroy {
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
         if (!this.loggedIn || this.currentPos !== data.fen) {
-          if (this.currentPos !== data.fen) {
+          if (this.currentPos !== data.fen && !this.loggedIn) {
             this.playMovePieceAudio();
           }
           this.loadPosition(data.fen);
           this.color = data.color;
         }
         this.moves = data.moves;
-        this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }
@@ -116,10 +117,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.tchatMessages = data.slice(-this.tchatLimit);
       }
     });
-  }
-
-  public getStatsHTML(): string {
-    return `${this.whiteName} (Blancs) vs ${this.blackName} (Noirs)<br />Aux ${this.color === "white" ? "Blancs" : "Noirs"} de jouer<br />Coup #${Math.ceil(this.moves.length / 2)}`;
   }
 
   constructor(
@@ -144,8 +141,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.canvas.height = this.boardSize;
     this.color = "white";
     this.renderer.appendChild(this.el.nativeElement, this.canvas);
-    this.renderer.appendChild(this.el.nativeElement, this.stats);
-    this.stats.classList.add('stats');
     this.loadPosition(this.START_POSITION);
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
@@ -154,7 +149,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.moves = data.moves;
         this.whiteName = data.white;
         this.blackName = data.black;
-        this.stats.innerHTML = this.getStatsHTML();
       }
     });
     this.canvas.addEventListener('click', (event) => {
@@ -164,6 +158,12 @@ export class AppComponent implements OnInit, OnDestroy {
     });
     this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
     this.refreshTchatSetTimeout = setInterval(() => this.refreshTchat(), 1000);
+  }
+
+  public flipBoard(): void {
+    this.colorPOV = this.colorPOV === 'white' ? 'black' : 'white';
+    localStorage.setItem('colorPOV', this.colorPOV);
+    this.loadPosition(this.currentPos);
   }
 
   public reset(): void {
@@ -181,7 +181,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.moves = data.moves;
         this.whiteName = data.white;
         this.blackName = data.black;
-        this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }
@@ -198,7 +197,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.moves = data.moves;
         this.whiteName = data.white;
         this.blackName = data.black;
-        this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }
@@ -239,6 +237,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private loadPosition(fen: string): void {
+    if (this.colorPOV === "white") {
+      this.loadPositionWhite(fen);
+    } else {
+      this.loadPositionBlack(fen);
+    }
+  }
+
+  private loadPositionWhite(fen: string): void {
     this.ctx.fillStyle = this.blackTileColor;
     this.ctx.fillRect(0, 0, this.boardSize, this.boardSize);
     this.ctx.fillStyle = this.whiteTileColor;
@@ -323,7 +329,100 @@ export class AppComponent implements OnInit, OnDestroy {
               this.ctx.fill();
             }
           }
+          col++;
+        } else {
+          col += parseInt(c); // move the column index by the number of empty squares
+        }
+      }
+    }
+    this.currentPos = fen;
+  }
 
+  private loadPositionBlack(fen: string): void {
+    this.ctx.fillStyle = this.whiteTileColor;
+    this.ctx.fillRect(0, 0, this.boardSize, this.boardSize);
+    this.ctx.fillStyle = this.blackTileColor;
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        if ((i + j) % 2 === 0) {
+          this.ctx.fillRect((7-i) * (this.boardSize / 8), (7-j) * (this.boardSize / 8), (this.boardSize / 8), (this.boardSize / 8));
+        }
+      }
+    }
+    // draw H-A & 8-0
+    this.ctx.font = `${this.boardSize / 20}px Arial`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    for (let i = 0; i < 8; i++) {
+      if (i % 2 === 0) {
+        this.ctx.fillStyle = this.whiteTileColor;
+      } else {
+        this.ctx.fillStyle = this.blackTileColor;
+      }
+      this.ctx.fillText(String.fromCharCode(72 - i), (i + 0.5) * (this.boardSize / 8), (this.boardSize / 16));
+    }
+    for (let i = 7; i > 0; i--) {
+      if (i % 2 === 0) {
+        this.ctx.fillStyle = this.blackTileColor;
+      } else {
+        this.ctx.fillStyle = this.whiteTileColor;
+      }
+      this.ctx.fillText(String.fromCharCode(49 + i), this.boardSize - (this.boardSize / 16), (i + 0.5) * (this.boardSize / 8));
+    }
+    const rows = fen.split('/');
+    for (let i = 0; i < 8; i++) {
+      let col = 0;
+      for (let j = 0; j < rows[i].length; j++) {
+        const c = rows[i].charAt(j);
+        if (isNaN(Number(c))) { // if c is not a number, it's a piece
+          let file: string = '';
+          switch (c) {
+            case 'p':
+              file = 'bp'; break;
+            case 'r':
+              file = 'br'; break;
+            case 'n':
+              file = 'bn'; break;
+            case 'b':
+              file = 'bb'; break;
+            case 'q':
+              file = 'bq'; break;
+            case 'k':
+              file = 'bk'; break;
+            case 'P':
+              file = 'wp'; break;
+            case 'R':
+              file = 'wr'; break;
+            case 'N':
+              file = 'wn'; break;
+            case 'B':
+              file = 'wb'; break;
+            case 'Q':
+              file = 'wq'; break;
+            case 'K':
+              file = 'wk'; break;
+          }
+          const img = this.pieces[file];
+          if (img) this.ctx.drawImage(img, (7-col) * (this.boardSize / 8), (7-i) * (this.boardSize / 8), (this.boardSize / 8), (this.boardSize / 8));
+          // if the piece is selected, draw a red square around it
+          if (this.selectedPiecePosition.row === i && this.selectedPiecePosition.col === col && img) {
+            this.ctx.strokeStyle = this.UIColor;
+            this.ctx.lineWidth = 5;
+            this.ctx.strokeRect((7-col) * (this.boardSize / 8), (7-i) * (this.boardSize / 8), (this.boardSize / 8), (this.boardSize / 8));
+          }
+          // for the position, check with the moveIsValid function to see if the piece can move there
+          // if so, draw a red dot on the square
+          if (this.selectedPiecePosition.row !== -1 &&
+              this.selectedPiecePosition.col !== -1 &&
+              (this.selectedPiecePosition.row !== i ||
+              this.selectedPiecePosition.col !== col)) {
+            if (this.moveIsValid(this.selectedPiecePosition.row, this.selectedPiecePosition.col, i, col)) {
+              this.ctx.fillStyle = this.UIColor;
+              this.ctx.beginPath();
+              this.ctx.arc((7-col) * (this.boardSize / 8) + (this.boardSize / 16), (7-i) * (this.boardSize / 8) + (this.boardSize / 16), (this.boardSize / 80), 0, 2 * Math.PI);
+              this.ctx.fill();
+            }
+          }
           col++;
         } else {
           col += parseInt(c); // move the column index by the number of empty squares
@@ -334,8 +433,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private handleClick(x: number, y: number): void {
-    const col = Math.floor(x / (this.boardSize / 8));
-    const row = Math.floor(y / (this.boardSize / 8));
+    let col, row;
+    if (this.colorPOV === "white") {
+      col = Math.floor(x / (this.boardSize / 8));
+      row = Math.floor(y / (this.boardSize / 8));
+    } else {
+      col = 7 - Math.floor(x / (this.boardSize / 8));
+      row = 7 - Math.floor(y / (this.boardSize / 8));
+    }
     if (this.selectedPiecePosition.row === -1) {
       this.selectedPiecePosition.row = row;
       this.selectedPiecePosition.col = col;
@@ -359,7 +464,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
-        this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }
@@ -418,7 +522,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
-        this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }
@@ -572,7 +675,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.loadPosition(data.fen);
         this.color = data.color;
         this.moves = data.moves;
-        this.stats.innerHTML = this.getStatsHTML();
       }
     });
   }

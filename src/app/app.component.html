@@ -34,3 +34,9 @@
         <input type="text" name="message" [(ngModel)]="tchatInputValue" #messageInput="ngModel" required maxlength="42" autocomplete="off" />
     </form>
 </div>
+<div class="stats">
+    {{whiteName}} (Blancs) vs {{blackName}} (Noirs)<br />
+    Aux {{color === "white" ? "Blancs" : "Noirs"}} de jouer<br />
+    Coup {{math.ceil(moves.length / 2)}}
+    <button (click)="this.flipBoard()">Retourner l'échiquier</button>
+</div>
