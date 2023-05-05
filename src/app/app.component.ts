@@ -249,6 +249,26 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       }
     }
+    // draw A-H & 0-8
+    this.ctx.font = `${this.boardSize / 20}px Arial`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    for (let i = 0; i < 8; i++) {
+      if (i % 2 === 0) {
+        this.ctx.fillStyle = this.whiteTileColor;
+      } else {
+        this.ctx.fillStyle = this.blackTileColor;
+      }
+      this.ctx.fillText(String.fromCharCode(65 + i), (i + 0.5) * (this.boardSize / 8), this.boardSize - (this.boardSize / 16));
+    }
+    for (let i = 6; i >= 0; i--) {
+      if (i % 2 === 0) {
+        this.ctx.fillStyle = this.blackTileColor;
+      } else {
+        this.ctx.fillStyle = this.whiteTileColor;
+      }
+      this.ctx.fillText(String.fromCharCode(56 - i), this.boardSize / 16, (i + 0.5) * (this.boardSize / 8));
+    }
     const rows = fen.split('/');
     for (let i = 0; i < 8; i++) {
       let col = 0;
