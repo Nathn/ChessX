@@ -88,6 +88,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
   }
 
+  public openTchat(): void {
+    this.tchatVisible = true;
+  }
+
   public closeControls(): void {
     this.controlsVisible = false;
   }
