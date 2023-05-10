@@ -221,6 +221,13 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  public switchNames(): void {
+    const tmp = this.whiteName;
+    this.whiteName = this.blackName;
+    this.blackName = tmp;
+    this.updateNames();
+  }
+
   public sendTchatMessage(): void {
     if (!this.tchatInputValue.trim()) {
       return;
