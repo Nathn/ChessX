@@ -3,17 +3,20 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 const Game = require('../models/Game');
-const Tchat = require('../models/Tchat');
 
 const router = express.Router();
 
 router.get('/game', async (req, res) => {
-    let game = await Game.find();
-    res.send(game[0]);
+    let game = await Game.findOne({
+        active: true
+    });
+    res.send(game);
 });
 
 router.post('/move', async (req, res) => {
-    let game = await Game.find();
+    let game = await Game.findOne({
+        active: true
+    });
     if (game.length === 0) {
         game = new Game({
             fen: req.body.fen,
@@ -26,23 +29,25 @@ router.post('/move', async (req, res) => {
         await game.save();
         res.send(game);
     } else {
-        if (game[0].moves.length > 0 && game[0].moves[game[0].moves.length - 1].fen === req.body.fen) {
-            res.send(game[0]);
+        if (game.moves.length > 0 && game.moves[game.moves.length - 1].fen === req.body.fen) {
+            res.send(game);
         } else {
-            game[0].moves.push({
+            game.moves.push({
                 fen: req.body.fen,
                 color: req.body.color
             });
-            game[0].fen = req.body.fen;
-            game[0].color = req.body.color;
-            await game[0].save();
-            res.send(game[0]);
+            game.fen = req.body.fen;
+            game.color = req.body.color;
+            await game.save();
+            res.send(game);
         }
     }
 });
 
 router.post('/undo', async (req, res) => {
-    let game = await Game.find();
+    let game = await Game.findOne({
+        active: true
+    });
     if (game.length === 0) {
         game = new Game({
             fen: req.body.fen,
@@ -55,20 +60,21 @@ router.post('/undo', async (req, res) => {
         await game.save();
         res.send(game);
     } else {
-        if (game[0].moves.length < 2) {
-            res.send(game[0]);
+        if (game.moves.length < 2) {
+            res.send(game);
         }
-        game[0].fen = game[0].moves[game[0].moves.length - 2].fen;
-        game[0].color = game[0].moves[game[0].moves.length - 2].color;
-        game[0].moves.pop();
-        await game[0].save();
-        res.send(game[0]);
+        game.fen = game.moves[game.moves.length - 2].fen;
+        game.color = game.moves[game.moves.length - 2].color;
+        game.moves.pop();
+        await game.save();
+        res.send(game);
     }
 });
 
 router.post('/reset', async (req, res) => {
-    let game = await Game.find();
-    let tchat = await Tchat.find();
+    let game = await Game.findOne({
+        active: true
+    });
     if (game.length === 0) {
         game = new Game({
             fen: req.body.fen,
@@ -81,44 +87,43 @@ router.post('/reset', async (req, res) => {
         await game.save();
         res.send(game);
     } else {
-        game[0].fen = req.body.fen;
-        game[0].color = req.body.color;
-        game[0].moves = [{
+        game.fen = req.body.fen;
+        game.color = req.body.color;
+        game.moves = [{
             fen: req.body.fen,
             color: req.body.color
         }];
-        tchat[0].messages = [];
-        await game[0].save();
-        await tchat[0].save();
-        res.send(game[0]);
+        game.tchat = [];
+        await game.save();
+        res.send(game);
     }
 });
 
 router.post('/names', async (req, res) => {
-    let game = await Game.find();
+    let game = await Game.findOne({
+        active: true
+    });
     if (game.length === 0) {
         res.send({
             white: 'White',
             black: 'Black'
         });
     } else {
-        game[0].white = req.body.white;
-        game[0].black = req.body.black;
-        await game[0].save();
-        res.send(game[0]);
+        game.white = req.body.white;
+        game.black = req.body.black;
+        await game.save();
+        res.send(game);
     }
 });
 
 router.get('/tchat', async (req, res) => {
-    let tchat = await Tchat.find();
-    if (tchat.length === 0) {
-        tchat = new Tchat({
-            messages: []
-        });
-        await tchat.save();
-        res.send(tchat[0].messages);
+    let game = await Game.find({
+        active: true
+    });
+    if (game.length === 0) {
+        res.send([]);
     } else {
-        res.send(tchat[0].messages);
+        res.send(game.tchat);
     }
 });
 
@@ -126,23 +131,22 @@ router.post('/tchat', async (req, res) => {
     if (!req.body.text) {
         res.send([]);
     }
-    let tchat = await Tchat.find();
-    if (tchat.length === 0) {
-        tchat = new Tchat({
-            messages: []
-        });
-        await tchat.save();
-        tchat.messages.push({
+    let game = await Game.findOne({
+        active: true
+    });
+    if (game.length === 0) {
+        game = new Game();
+        game.tchat.push({
             text: req.body.text
         });
-        await tchat.save();
-        res.send(tchat.messages);
+        await game.save();
+        res.send(game.tchat);
     } else {
-        tchat[0].messages.push({
+        game.tchat.push({
             text: req.body.text
         });
-        await tchat[0].save();
-        res.send(tchat[0].messages);
+        await game.save();
+        res.send(game.tchat);
     }
 });
 

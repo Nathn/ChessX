@@ -4,6 +4,7 @@ const mongodbErrorHandler = require('mongoose-mongodb-errors');
 const gameSchema = new mongoose.Schema({
     fen: String,
     color: String,
+    active: Boolean,
     white: {
         type: String,
         default: 'White'
@@ -15,6 +16,13 @@ const gameSchema = new mongoose.Schema({
     moves: [{
         fen: String,
         color: String
+    }],
+    tchat: [{
+        text: String,
+        datetime: {
+            type: Date,
+            default: Date.now
+        }
     }],
     datetime: {
         type: Date,
