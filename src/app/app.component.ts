@@ -73,12 +73,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public login(): void {
-    if (this.password === environment.password) {
-      console.log("Logged in successfully!");
-      this.loggedIn = true;
-      localStorage.setItem('loggedIn', '1');
-      clearInterval(this.refreshSetTimeout);
-    }
+    this.httpService.post("/login", { password: this.password }).subscribe((data: any) => {
+      if (data) {
+        console.log("Logged in successfully!");
+        this.loggedIn = true;
+        localStorage.setItem('loggedIn', '1');
+        clearInterval(this.refreshSetTimeout);
+      }
+    });
   }
 
   public logout(): void {
@@ -90,21 +92,23 @@ export class AppComponent implements OnInit, OnDestroy {
 
   public openTchat(): void {
     this.tchatVisible = true;
+    this.selectedPiecePosition = { row: -1, col: -1 };
+  }
+
+  public closeTchat(): void {
+    this.tchatVisible = false;
+    this.selectedPiecePosition = { row: -1, col: -1 };
   }
 
   public closeControls(): void {
     this.controlsVisible = false;
   }
 
-  public closeTchat(): void {
-    this.tchatVisible = false;
-  }
-
   public refresh(): void {
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
-        if (!this.loggedIn || this.currentPos !== data.fen) {
-          if (this.currentPos !== data.fen && !this.loggedIn) {
+        if (!this.loggedIn) {
+          if (this.currentPos !== data.fen) {
             this.playMovePieceAudio();
           }
           this.loadPosition(data.fen);

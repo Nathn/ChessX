@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 const Game = require('../models/Game');
+const Config = require('../models/Config');
 
 const router = express.Router();
 
@@ -147,6 +148,19 @@ router.post('/tchat', async (req, res) => {
         });
         await game.save();
         res.send(game.tchat);
+    }
+});
+
+router.post('/login', async (req, res) => {
+    let config = await Config.findOne();
+    if (req.body.password === config.adminPassword) {
+        res.send({
+            success: true
+        });
+    } else {
+        res.send({
+            success: false
+        });
     }
 });
 
