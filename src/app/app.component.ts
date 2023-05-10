@@ -35,7 +35,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public UIColor = 'rgba(125, 87, 75, 0.75)';
   public boardSize = 800;
   public boardSizeRelative = 0.85;
-  public tchatLimit = 50;
+  public tchatLimit = 128;
 
   public password: string = "";
   public whiteName: string = "White";
@@ -87,7 +87,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.loggedIn = false;
     this.selectedPiecePosition = { row: -1, col: -1 };
     localStorage.setItem('loggedIn', '0');
-    this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
+    this.refreshSetTimeout = setInterval(() => this.refresh(0), 1000);
   }
 
   public openTchat(): void {
@@ -104,10 +104,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.controlsVisible = false;
   }
 
-  public refresh(): void {
+  public refresh(bypass: Number): void {
     this.httpService.get("/game").subscribe((data: any) => {
       if (data) {
-        if (!this.loggedIn) {
+        if (!this.loggedIn || bypass === 1) {
           if (this.currentPos !== data.fen) {
             this.playMovePieceAudio();
           }
@@ -164,7 +164,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.handleClick(event.offsetX, event.offsetY);
       }
     });
-    this.refreshSetTimeout = setInterval(() => this.refresh(), 1000);
+    this.refreshSetTimeout = setInterval(() => this.refresh(0), 1000);
     this.refreshTchatSetTimeout = setInterval(() => this.refreshTchat(), 1000);
   }
 
